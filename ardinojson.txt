@@ -1,0 +1,202 @@
+5*JSON_OBJECT_SIZE(1) + 18*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + 3*JSON_OBJECT_SIZE(4) + 18*JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(9)
+
+
+const size_t capacity = 5*JSON_OBJECT_SIZE(1) + 18*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + 3*JSON_OBJECT_SIZE(4) + 18*JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(9) + 3760;
+DynamicJsonDocument doc(capacity);
+
+const char* json = "{\"uuid\":\"urn:mrn:signalk:uuid:eef4388d-ded6-4ed5-98f1-d7ddfa11ec83\",\"design\":{\"aisShipType\":{\"value\":{\"name\":\"Sailing\",\"id\":36}}},\"navigation\":{\"position\":{\"meta\":{\"description\":\"The position of the vessel in 2 or 3 dimensions (WGS84 datum)\"},\"value\":{\"longitude\":138.554,\"latitude\":-35.11833333333333},\"$source\":\"Testinput.GP\",\"timestamp\":\"2019-12-25T18:11:02.000Z\",\"sentence\":\"GLL\"},\"courseOverGroundTrue\":{\"meta\":{\"units\":\"rad\",\"description\":\"Course over ground (true)\"},\"value\":1.2723450249943804,\"$source\":\"Testinput.GP\",\"timestamp\":\"2019-12-25T18:11:02.000Z\",\"sentence\":\"RMC\"},\"speedOverGround\":{\"meta\":{\"units\":\"m/s\",\"description\":\"Vessel speed over ground. If converting from AIS 'HIGH' value, set to 102.2 (Ais max value) and add warning in notifications\"},\"value\":4.990112375272913,\"$source\":\"Testinput.GP\",\"timestamp\":\"2019-12-25T18:11:02.000Z\",\"sentence\":\"RMC\"},\"magneticVariation\":{\"meta\":{\"units\":\"rad\",\"description\":\"The magnetic variation (declination) at the current position that must be added to the magnetic heading to derive the true heading. Easterly variations are positive and Westerly variations are negative (in Radians).\"},\"value\":0,\"$source\":\"Testinput.GP\",\"timestamp\":\"2019-12-25T18:11:02.000Z\",\"sentence\":\"RMC\"},\"magneticVariationAgeOfService\":{\"meta\":{\"units\":\"s\",\"description\":\"Seconds since the 1st Jan 1970 that the variation calculation was made\"},\"value\":1577297462,\"$source\":\"Testinput.GP\",\"timestamp\":\"2019-12-25T18:11:02.000Z\",\"sentence\":\"RMC\"},\"datetime\":{\"meta\":{\"description\":\"Time and Date from the GNSS Positioning System\"},\"value\":\"2019-12-25T18:11:02.047Z\",\"$source\":\"Testinput.GP\",\"timestamp\":\"2019-12-25T18:11:02.038Z\",\"sentence\":\"ZDA\"},\"headingTrue\":{\"meta\":{\"units\":\"rad\",\"description\":\"The current true north heading of the vessel, equals 'headingMagnetic adjusted for magneticVariation'\"},\"value\":1.2723450249943804,\"$source\":\"Testinput.II\",\"timestamp\":\"2019-12-25T18:11:02.036Z\",\"sentence\":\"HDT\"},\"headingMagnetic\":{\"meta\":{\"units\":\"rad\",\"description\":\"Current magnetic heading of the vessel, equals 'headingCompass adjusted for magneticDeviation'\"},\"value\":1.2723450249943804,\"$source\":\"Testinput.II\",\"timestamp\":\"2019-12-25T18:11:02.035Z\",\"sentence\":\"VHW\"},\"speedThroughWater\":{\"meta\":{\"units\":\"m/s\",\"description\":\"Vessel speed through the water\"},\"value\":2.572222873852017,\"$source\":\"Testinput.II\",\"timestamp\":\"2019-12-25T18:11:02.035Z\",\"sentence\":\"VHW\"}},\"environment\":{\"wind\":{\"speedTrue\":{\"meta\":{\"units\":\"m/s\",\"description\":\"Wind speed over water (as calculated from speedApparent and vessel's speed through water)\"},\"value\":14.198670263663136,\"$source\":\"Testinput.WI\",\"timestamp\":\"2019-12-25T18:11:02.042Z\",\"sentence\":\"MWV\"},\"angleTrueWater\":{\"meta\":{\"units\":\"rad\",\"description\":\"True wind angle based on speed through water, negative to port\"},\"value\":-1.9111355313701597,\"$source\":\"Testinput.WI\",\"timestamp\":\"2019-12-25T18:11:02.042Z\",\"sentence\":\"MWV\"},\"speedApparent\":{\"meta\":{\"units\":\"m/s\",\"description\":\"Apparent wind speed\"},\"value\":9.20855788839022,\"$source\":\"Testinput.WI\",\"timestamp\":\"2019-12-25T18:11:02.044Z\",\"sentence\":\"MWV\"},\"angleApparent\":{\"meta\":{\"units\":\"rad\",\"description\":\"Apparent wind angle, negative to port\"},\"value\":3.077015471968577,\"$source\":\"Testinput.WI\",\"timestamp\":\"2019-12-25T18:11:02.044Z\",\"sentence\":\"MWV\"}},\"water\":{\"temperature\":{\"meta\":{\"units\":\"K\",\"description\":\"Current water temperature\"},\"value\":281.54999999999995,\"$source\":\"Testinput.II\",\"timestamp\":\"2019-12-25T18:11:02.045Z\",\"sentence\":\"MTW\"}},\"depth\":{\"belowTransducer\":{\"meta\":{\"units\":\"m\",\"description\":\"Depth below Transducer\"},\"value\":63.7,\"$source\":\"Testinput.SD\",\"timestamp\":\"2019-12-25T18:11:02.046Z\",\"sentence\":\"DBT\"},\"surfaceToTransducer\":{\"meta\":{\"units\":\"m\",\"description\":\"Depth transducer is below the water surface\"},\"value\":1,\"$source\":\"Testinput.SD\",\"timestamp\":\"2019-12-25T18:11:02.045Z\",\"sentence\":\"DPT\"},\"belowSurface\":{\"meta\":{\"units\":\"m\",\"description\":\"Depth from surface\"},\"value\":63.7,\"$source\":\"Testinput.SD\",\"timestamp\":\"2019-12-25T18:11:02.047Z\",\"sentence\":\"DBS\"},\"belowKeel\":{\"meta\":{\"units\":\"m\",\"description\":\"Depth below keel\"},\"value\":63.7,\"$source\":\"Testinput.SD\",\"timestamp\":\"2019-12-25T18:11:02.046Z\",\"sentence\":\"DBK\"}}}}";
+
+deserializeJson(doc, json);
+
+const char* uuid = doc["uuid"]; // "urn:mrn:signalk:uuid:eef4388d-ded6-4ed5-98f1-d7ddfa11ec83"
+
+const char* design_aisShipType_value_name = doc["design"]["aisShipType"]["value"]["name"]; // "Sailing"
+int design_aisShipType_value_id = doc["design"]["aisShipType"]["value"]["id"]; // 36
+
+JsonObject navigation = doc["navigation"];
+
+JsonObject navigation_position = navigation["position"];
+
+const char* navigation_position_meta_description = navigation_position["meta"]["description"]; // "The position of the vessel in 2 or 3 dimensions (WGS84 datum)"
+
+float navigation_position_value_longitude = navigation_position["value"]["longitude"]; // 138.554
+float navigation_position_value_latitude = navigation_position["value"]["latitude"]; // -35.11833333333333
+
+const char* navigation_position__source = navigation_position["$source"]; // "Testinput.GP"
+const char* navigation_position_timestamp = navigation_position["timestamp"]; // "2019-12-25T18:11:02.000Z"
+const char* navigation_position_sentence = navigation_position["sentence"]; // "GLL"
+
+JsonObject navigation_courseOverGroundTrue = navigation["courseOverGroundTrue"];
+
+const char* navigation_courseOverGroundTrue_meta_units = navigation_courseOverGroundTrue["meta"]["units"]; // "rad"
+const char* navigation_courseOverGroundTrue_meta_description = navigation_courseOverGroundTrue["meta"]["description"]; // "Course over ground (true)"
+
+float navigation_courseOverGroundTrue_value = navigation_courseOverGroundTrue["value"]; // 1.2723450249943804
+const char* navigation_courseOverGroundTrue__source = navigation_courseOverGroundTrue["$source"]; // "Testinput.GP"
+const char* navigation_courseOverGroundTrue_timestamp = navigation_courseOverGroundTrue["timestamp"]; // "2019-12-25T18:11:02.000Z"
+const char* navigation_courseOverGroundTrue_sentence = navigation_courseOverGroundTrue["sentence"]; // "RMC"
+
+JsonObject navigation_speedOverGround = navigation["speedOverGround"];
+
+const char* navigation_speedOverGround_meta_units = navigation_speedOverGround["meta"]["units"]; // "m/s"
+const char* navigation_speedOverGround_meta_description = navigation_speedOverGround["meta"]["description"]; // "Vessel speed over ground. If converting from AIS 'HIGH' value, set to 102.2 (Ais max value) and add warning in notifications"
+
+float navigation_speedOverGround_value = navigation_speedOverGround["value"]; // 4.990112375272913
+const char* navigation_speedOverGround__source = navigation_speedOverGround["$source"]; // "Testinput.GP"
+const char* navigation_speedOverGround_timestamp = navigation_speedOverGround["timestamp"]; // "2019-12-25T18:11:02.000Z"
+const char* navigation_speedOverGround_sentence = navigation_speedOverGround["sentence"]; // "RMC"
+
+JsonObject navigation_magneticVariation = navigation["magneticVariation"];
+
+const char* navigation_magneticVariation_meta_units = navigation_magneticVariation["meta"]["units"]; // "rad"
+const char* navigation_magneticVariation_meta_description = navigation_magneticVariation["meta"]["description"]; // "The magnetic variation (declination) at the current position that must be added to the magnetic heading to derive the true heading. Easterly variations are positive and Westerly variations are negative (in Radians)."
+
+int navigation_magneticVariation_value = navigation_magneticVariation["value"]; // 0
+const char* navigation_magneticVariation__source = navigation_magneticVariation["$source"]; // "Testinput.GP"
+const char* navigation_magneticVariation_timestamp = navigation_magneticVariation["timestamp"]; // "2019-12-25T18:11:02.000Z"
+const char* navigation_magneticVariation_sentence = navigation_magneticVariation["sentence"]; // "RMC"
+
+JsonObject navigation_magneticVariationAgeOfService = navigation["magneticVariationAgeOfService"];
+
+const char* navigation_magneticVariationAgeOfService_meta_units = navigation_magneticVariationAgeOfService["meta"]["units"]; // "s"
+const char* navigation_magneticVariationAgeOfService_meta_description = navigation_magneticVariationAgeOfService["meta"]["description"]; // "Seconds since the 1st Jan 1970 that the variation calculation was made"
+
+long navigation_magneticVariationAgeOfService_value = navigation_magneticVariationAgeOfService["value"]; // 1577297462
+const char* navigation_magneticVariationAgeOfService__source = navigation_magneticVariationAgeOfService["$source"]; // "Testinput.GP"
+const char* navigation_magneticVariationAgeOfService_timestamp = navigation_magneticVariationAgeOfService["timestamp"]; // "2019-12-25T18:11:02.000Z"
+const char* navigation_magneticVariationAgeOfService_sentence = navigation_magneticVariationAgeOfService["sentence"]; // "RMC"
+
+JsonObject navigation_datetime = navigation["datetime"];
+
+const char* navigation_datetime_meta_description = navigation_datetime["meta"]["description"]; // "Time and Date from the GNSS Positioning System"
+
+const char* navigation_datetime_value = navigation_datetime["value"]; // "2019-12-25T18:11:02.047Z"
+const char* navigation_datetime__source = navigation_datetime["$source"]; // "Testinput.GP"
+const char* navigation_datetime_timestamp = navigation_datetime["timestamp"]; // "2019-12-25T18:11:02.038Z"
+const char* navigation_datetime_sentence = navigation_datetime["sentence"]; // "ZDA"
+
+JsonObject navigation_headingTrue = navigation["headingTrue"];
+
+const char* navigation_headingTrue_meta_units = navigation_headingTrue["meta"]["units"]; // "rad"
+const char* navigation_headingTrue_meta_description = navigation_headingTrue["meta"]["description"]; // "The current true north heading of the vessel, equals 'headingMagnetic adjusted for magneticVariation'"
+
+float navigation_headingTrue_value = navigation_headingTrue["value"]; // 1.2723450249943804
+const char* navigation_headingTrue__source = navigation_headingTrue["$source"]; // "Testinput.II"
+const char* navigation_headingTrue_timestamp = navigation_headingTrue["timestamp"]; // "2019-12-25T18:11:02.036Z"
+const char* navigation_headingTrue_sentence = navigation_headingTrue["sentence"]; // "HDT"
+
+JsonObject navigation_headingMagnetic = navigation["headingMagnetic"];
+
+const char* navigation_headingMagnetic_meta_units = navigation_headingMagnetic["meta"]["units"]; // "rad"
+const char* navigation_headingMagnetic_meta_description = navigation_headingMagnetic["meta"]["description"]; // "Current magnetic heading of the vessel, equals 'headingCompass adjusted for magneticDeviation'"
+
+float navigation_headingMagnetic_value = navigation_headingMagnetic["value"]; // 1.2723450249943804
+const char* navigation_headingMagnetic__source = navigation_headingMagnetic["$source"]; // "Testinput.II"
+const char* navigation_headingMagnetic_timestamp = navigation_headingMagnetic["timestamp"]; // "2019-12-25T18:11:02.035Z"
+const char* navigation_headingMagnetic_sentence = navigation_headingMagnetic["sentence"]; // "VHW"
+
+JsonObject navigation_speedThroughWater = navigation["speedThroughWater"];
+
+const char* navigation_speedThroughWater_meta_units = navigation_speedThroughWater["meta"]["units"]; // "m/s"
+const char* navigation_speedThroughWater_meta_description = navigation_speedThroughWater["meta"]["description"]; // "Vessel speed through the water"
+
+float navigation_speedThroughWater_value = navigation_speedThroughWater["value"]; // 2.572222873852017
+const char* navigation_speedThroughWater__source = navigation_speedThroughWater["$source"]; // "Testinput.II"
+const char* navigation_speedThroughWater_timestamp = navigation_speedThroughWater["timestamp"]; // "2019-12-25T18:11:02.035Z"
+const char* navigation_speedThroughWater_sentence = navigation_speedThroughWater["sentence"]; // "VHW"
+
+JsonObject environment = doc["environment"];
+
+JsonObject environment_wind = environment["wind"];
+
+JsonObject environment_wind_speedTrue = environment_wind["speedTrue"];
+
+const char* environment_wind_speedTrue_meta_units = environment_wind_speedTrue["meta"]["units"]; // "m/s"
+const char* environment_wind_speedTrue_meta_description = environment_wind_speedTrue["meta"]["description"]; // "Wind speed over water (as calculated from speedApparent and vessel's speed through water)"
+
+float environment_wind_speedTrue_value = environment_wind_speedTrue["value"]; // 14.198670263663136
+const char* environment_wind_speedTrue__source = environment_wind_speedTrue["$source"]; // "Testinput.WI"
+const char* environment_wind_speedTrue_timestamp = environment_wind_speedTrue["timestamp"]; // "2019-12-25T18:11:02.042Z"
+const char* environment_wind_speedTrue_sentence = environment_wind_speedTrue["sentence"]; // "MWV"
+
+JsonObject environment_wind_angleTrueWater = environment_wind["angleTrueWater"];
+
+const char* environment_wind_angleTrueWater_meta_units = environment_wind_angleTrueWater["meta"]["units"]; // "rad"
+const char* environment_wind_angleTrueWater_meta_description = environment_wind_angleTrueWater["meta"]["description"]; // "True wind angle based on speed through water, negative to port"
+
+float environment_wind_angleTrueWater_value = environment_wind_angleTrueWater["value"]; // -1.9111355313701597
+const char* environment_wind_angleTrueWater__source = environment_wind_angleTrueWater["$source"]; // "Testinput.WI"
+const char* environment_wind_angleTrueWater_timestamp = environment_wind_angleTrueWater["timestamp"]; // "2019-12-25T18:11:02.042Z"
+const char* environment_wind_angleTrueWater_sentence = environment_wind_angleTrueWater["sentence"]; // "MWV"
+
+JsonObject environment_wind_speedApparent = environment_wind["speedApparent"];
+
+const char* environment_wind_speedApparent_meta_units = environment_wind_speedApparent["meta"]["units"]; // "m/s"
+const char* environment_wind_speedApparent_meta_description = environment_wind_speedApparent["meta"]["description"]; // "Apparent wind speed"
+
+float environment_wind_speedApparent_value = environment_wind_speedApparent["value"]; // 9.20855788839022
+const char* environment_wind_speedApparent__source = environment_wind_speedApparent["$source"]; // "Testinput.WI"
+const char* environment_wind_speedApparent_timestamp = environment_wind_speedApparent["timestamp"]; // "2019-12-25T18:11:02.044Z"
+const char* environment_wind_speedApparent_sentence = environment_wind_speedApparent["sentence"]; // "MWV"
+
+JsonObject environment_wind_angleApparent = environment_wind["angleApparent"];
+
+const char* environment_wind_angleApparent_meta_units = environment_wind_angleApparent["meta"]["units"]; // "rad"
+const char* environment_wind_angleApparent_meta_description = environment_wind_angleApparent["meta"]["description"]; // "Apparent wind angle, negative to port"
+
+float environment_wind_angleApparent_value = environment_wind_angleApparent["value"]; // 3.077015471968577
+const char* environment_wind_angleApparent__source = environment_wind_angleApparent["$source"]; // "Testinput.WI"
+const char* environment_wind_angleApparent_timestamp = environment_wind_angleApparent["timestamp"]; // "2019-12-25T18:11:02.044Z"
+const char* environment_wind_angleApparent_sentence = environment_wind_angleApparent["sentence"]; // "MWV"
+
+JsonObject environment_water_temperature = environment["water"]["temperature"];
+
+const char* environment_water_temperature_meta_units = environment_water_temperature["meta"]["units"]; // "K"
+const char* environment_water_temperature_meta_description = environment_water_temperature["meta"]["description"]; // "Current water temperature"
+
+float environment_water_temperature_value = environment_water_temperature["value"]; // 281.54999999999995
+const char* environment_water_temperature__source = environment_water_temperature["$source"]; // "Testinput.II"
+const char* environment_water_temperature_timestamp = environment_water_temperature["timestamp"]; // "2019-12-25T18:11:02.045Z"
+const char* environment_water_temperature_sentence = environment_water_temperature["sentence"]; // "MTW"
+
+JsonObject environment_depth = environment["depth"];
+
+JsonObject environment_depth_belowTransducer = environment_depth["belowTransducer"];
+
+const char* environment_depth_belowTransducer_meta_units = environment_depth_belowTransducer["meta"]["units"]; // "m"
+const char* environment_depth_belowTransducer_meta_description = environment_depth_belowTransducer["meta"]["description"]; // "Depth below Transducer"
+
+float environment_depth_belowTransducer_value = environment_depth_belowTransducer["value"]; // 63.7
+const char* environment_depth_belowTransducer__source = environment_depth_belowTransducer["$source"]; // "Testinput.SD"
+const char* environment_depth_belowTransducer_timestamp = environment_depth_belowTransducer["timestamp"]; // "2019-12-25T18:11:02.046Z"
+const char* environment_depth_belowTransducer_sentence = environment_depth_belowTransducer["sentence"]; // "DBT"
+
+JsonObject environment_depth_surfaceToTransducer = environment_depth["surfaceToTransducer"];
+
+const char* environment_depth_surfaceToTransducer_meta_units = environment_depth_surfaceToTransducer["meta"]["units"]; // "m"
+const char* environment_depth_surfaceToTransducer_meta_description = environment_depth_surfaceToTransducer["meta"]["description"]; // "Depth transducer is below the water surface"
+
+int environment_depth_surfaceToTransducer_value = environment_depth_surfaceToTransducer["value"]; // 1
+const char* environment_depth_surfaceToTransducer__source = environment_depth_surfaceToTransducer["$source"]; // "Testinput.SD"
+const char* environment_depth_surfaceToTransducer_timestamp = environment_depth_surfaceToTransducer["timestamp"]; // "2019-12-25T18:11:02.045Z"
+const char* environment_depth_surfaceToTransducer_sentence = environment_depth_surfaceToTransducer["sentence"]; // "DPT"
+
+JsonObject environment_depth_belowSurface = environment_depth["belowSurface"];
+
+const char* environment_depth_belowSurface_meta_units = environment_depth_belowSurface["meta"]["units"]; // "m"
+const char* environment_depth_belowSurface_meta_description = environment_depth_belowSurface["meta"]["description"]; // "Depth from surface"
+
+float environment_depth_belowSurface_value = environment_depth_belowSurface["value"]; // 63.7
+const char* environment_depth_belowSurface__source = environment_depth_belowSurface["$source"]; // "Testinput.SD"
+const char* environment_depth_belowSurface_timestamp = environment_depth_belowSurface["timestamp"]; // "2019-12-25T18:11:02.047Z"
+const char* environment_depth_belowSurface_sentence = environment_depth_belowSurface["sentence"]; // "DBS"
+
+JsonObject environment_depth_belowKeel = environment_depth["belowKeel"];
+
+const char* environment_depth_belowKeel_meta_units = environment_depth_belowKeel["meta"]["units"]; // "m"
+const char* environment_depth_belowKeel_meta_description = environment_depth_belowKeel["meta"]["description"]; // "Depth below keel"
+
+float environment_depth_belowKeel_value = environment_depth_belowKeel["value"]; // 63.7
+const char* environment_depth_belowKeel__source = environment_depth_belowKeel["$source"]; // "Testinput.SD"
+const char* environment_depth_belowKeel_timestamp = environment_depth_belowKeel["timestamp"]; // "2019-12-25T18:11:02.046Z"
+const char* environment_depth_belowKeel_sentence = environment_depth_belowKeel["sentence"]; // "DBK"
