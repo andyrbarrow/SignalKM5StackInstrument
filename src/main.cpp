@@ -20,7 +20,6 @@ char localNtp[] = "10.10.10.1";
 void client_connect();
 void subscribe_datastream ();
 void server_handshake ();
-void setup_wifi();
 void clearscreen();
 const char* handleReceivedMessage(String message);
 String DegreesToDegMin(float x);
@@ -213,41 +212,6 @@ void clearscreen() {
   M5.Lcd.setTextColor(WHITE ,BLACK);
   M5.Lcd.setTextSize(2);
   M5.Lcd.setCursor(0,0);
-}
-
-void setup_wifi() {
-  int reset_index = 1;
-  while (WiFi.status() != WL_CONNECTED) {
-    WiFi.begin(ssid, password);
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
-    M5.Lcd.print("Connecting to ");
-    M5.Lcd.println(ssid);
-    delay(10000);
-    Serial.print(".");
-    M5.Lcd.print(".");
-    //If WiFi doesn't connect in 30 seconds, do a software reset
-    reset_index ++;
-    if (reset_index > 6) {
-      Serial.println("WIFI Failed - restarting");
-      clearscreen();
-      M5.Lcd.println(" WiFi Failed");
-      M5.Lcd.println(" Restarting");
-      delay(1000);
-      ESP.restart();
-    }
-    if (WiFi.status() == WL_CONNECTED) {
-      clearscreen();
-      M5.Lcd.println(" WiFi");
-      M5.Lcd.println(" Connected");
-      M5.Lcd.println(WiFi.localIP());
-      delay(500);
-    }
-  }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void displayInfo(const char * updates_path) {
@@ -458,11 +422,11 @@ void setup() {
   #include "heyya.h"
 
   M5.begin();
+  ez.begin();
+
   M5.Lcd.setTextWrap(true, true);
   Serial.begin(115200);
   while (!Serial) continue;
-
-  setup_wifi();
   delay(500);
   ezt::setDebug(INFO);
 
@@ -472,12 +436,6 @@ void setup() {
   if (!Mexico.setCache(0)) Mexico.setLocation("America/Mexico_City");
   Mexico.setDefault();
   void setServer(String ntp_server = localNtp);
-
-  ez.begin();
-  client_connect();
-  delay(2000);
-  server_handshake ();
-  subscribe_datastream ();
 }
 
 void loop() {
@@ -492,6 +450,12 @@ void loop() {
   mainmenu.downOnLast("first|down");
   mainmenu.run();
   String data;
+  if (!client.connected()) {
+    Serial.println("Client disconnected. Reconnecting");
+    client_connect();
+    server_handshake ();
+    subscribe_datastream();
+  }
 }
 
 void location_display() {
@@ -504,15 +468,15 @@ void location_display() {
     if (client.connected()) {
       webSocketClient.getData(data);
       if (data.length() > 0) {
-        //handleReceivedMessage(data);
         displayInfo(handleReceivedMessage(data));
         M5.Lcd.setTextWrap(true, true);
         }
-      } else {
-        Serial.println("Client disconnected. Reconnecting");
-        client_connect();
-        subscribe_datastream();
-      }
+    } else {
+      Serial.println("Client disconnected. Reconnecting");
+      client_connect();
+      server_handshake ();
+      subscribe_datastream();
+    }
     delay(10);  // <- fixes some issues with WiFi stability
     btnpressed = ez.buttons.poll();
   }
