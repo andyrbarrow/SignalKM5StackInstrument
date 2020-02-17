@@ -8,12 +8,12 @@
 #include "UbuntuMono_Regular16pt7b.h"
 
 #define DEG2RAD 0.0174532925
-//#define PI 3.14159265359
 
 const char* ssid     = "openplotter";
 const char* password = "margaritaville";
 char path[] = "/signalk/v1/stream?subcribe=none";
 char host[] = "10.10.10.1";
+char localNtp[] = "10.10.10.1";
 
 
 //Declare functions
@@ -77,115 +77,55 @@ const char* handleReceivedMessage(String message){
 
   const char* updates_path = obj["updates"][0]["values"][0]["path"];
   if (updates_path != nullptr) {
-    //Serial.print("updates_path: ");
-    //Serial.println(updates_path);
 
+    //load up the global variables
     if (strcmp(updates_path, "navigation.position")==0) {
       navigation_position_longitude = obj["updates"][0]["values"][0]["value"]["longitude"];
       navigation_position_latitude = obj["updates"][0]["values"][0]["value"]["latitude"];
-      /*if (navigation_position_longitude != 0){
-        Serial.print("navigation_position_longitude: ");
-        Serial.println(navigation_position_longitude);
-        Serial.print("navigation_position_latitude: ");
-        Serial.println(navigation_position_latitude);
-      }*/
     }
     if (strcmp(updates_path, "environment.wind.speedTrue")==0) {
       environment_wind_speedTrue = obj["updates"][0]["values"][0]["value"];
-      /*if (environment_wind_speedTrue != 0){
-        Serial.print("environment_wind_speedTrue: ");
-        Serial.println(environment_wind_speedTrue);
-      }*/
     }
     if (strcmp(updates_path, "environment.wind.angleTrueWater")==0) {
       environment_wind_angleTrueWater = obj["updates"][0]["values"][0]["value"];
-      /*if (environment_wind_angleTrueWater != 0){
-        Serial.print("environment_wind_angleTrueWater: ");
-        Serial.println(environment_wind_angleTrueWater);
-      }*/
     }
-
     if (strcmp(updates_path, "environment.water.temperature")==0) {
       environment_water_temperature = obj["updates"][0]["values"][0]["value"];
-      /*if (environment_water_temperature != 0){
-        Serial.print("environment_water_temperature: ");
-        Serial.println(environment_water_temperature);
-      }*/
     }
     if (strcmp(updates_path, "environment.wind.angleApparent")==0) {
       environment_wind_angleApparent = obj["updates"][0]["values"][0]["value"];
-      /*if (environment_wind_angleApparent != 0){
-        Serial.print("environment_wind_angleApparent: ");
-        Serial.println(environment_wind_angleApparent);
-      }*/
     }
     if (strcmp(updates_path, "environment.wind.speedApparent")==0) {
       environment_wind_speedApparent = obj["updates"][0]["values"][0]["value"];
-      /*if (environment_wind_speedApparent != 0){
-        Serial.print("environment_wind_speedApparent: ");
-        Serial.println(environment_wind_speedApparent);
-      }*/
     }
     if (strcmp(updates_path, "environment.depth.belowTransducer")==0) {
       environment_depth_belowTransducer = obj["updates"][0]["values"][0]["value"];
-      /*if (environment_depth_belowTransducer != 0){
-        Serial.print("environment_depth_belowTransducer: ");
-        Serial.println(environment_depth_belowTransducer);
-      }*/
     }
     if (strcmp(updates_path, "navigation.speedOverGround")==0) {
       navigation_speedOverGround = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_speedOverGround != 0){
-        Serial.print("navigation_speedOverGround: ");
-        Serial.println(navigation_speedOverGround);
-      }*/
-    }
+      }
     if (strcmp(updates_path, "navigation.magneticVariation")==0) {
       navigation_magneticVariation = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_magneticVariation != 0){
-        Serial.print("navigation_magneticVariation: ");
-        Serial.println(navigation_magneticVariation);
-      }*/
     }
     if (strcmp(updates_path, "navigation.courseOverGroundTrue")==0) {
       navigation_courseOverGroundTrue = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_courseOverGroundTrue != 0){
-        Serial.print("navigation_courseOverGroundTrue: ");
-        Serial.println(navigation_courseOverGroundTrue);
-      }*/
-    }
+      }
     if (strcmp(updates_path, "navigation.headingMagnetic")==0) {
       navigation_headingMagnetic = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_headingMagnetic != 0){
-        Serial.print("navigation_headingMagnetic: ");
-        Serial.println(navigation_headingMagnetic);
-      }*/
     }
     if (strcmp(updates_path, "navigation.speedThroughWater")==0) {
       navigation_speedThroughWater = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_speedThroughWater != 0){
-        Serial.print("navigation_speedThroughWater: ");
-        Serial.println(navigation_speedThroughWater);
-      }*/
     }
     if (strcmp(updates_path, "navigation.headingTrue")==0) {
       navigation_headingTrue = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_headingTrue != 0){
-        Serial.print("navigation_headingTrue: ");
-        Serial.println(navigation_headingTrue);
-      }*/
     }
     if (strcmp(updates_path, "navigation_datetime")==0) {
       navigation_datetime = obj["updates"][0]["values"][0]["value"];
-      /*if (navigation_datetime != 0){
-        Serial.print("navigation_datetime: ");
-        Serial.println(navigation_datetime);
-        Serial.println(message);
-      }*/
     }
     return updates_path;
   }
 }
+
 void client_connect () {
   // Connect to the websocket server
   if (client.connect(host, 3000)) {
@@ -194,6 +134,7 @@ void client_connect () {
     Serial.println("Connection failed.");
   }
 }
+
 void server_handshake () {
   // Handshake with the server
   webSocketClient.path = path;
@@ -308,7 +249,6 @@ void setup_wifi() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
-
 
 void displayInfo(const char * updates_path) {
   ez.canvas.font(&UbuntuMono_Regular16pt7b);
@@ -531,6 +471,7 @@ void setup() {
   Mexico.setLocation("America/Mexico_City");
   if (!Mexico.setCache(0)) Mexico.setLocation("America/Mexico_City");
   Mexico.setDefault();
+  void setServer(String ntp_server = localNtp);
 
   ez.begin();
   client_connect();
@@ -584,9 +525,9 @@ void location_display() {
     //wind_display();
   }
 }
+
 void wind_display() {
   int realTrueWindangle;
-  int apparentWindangle;
   String btnpressed = ez.buttons.poll();
   String data;
 
@@ -607,11 +548,7 @@ void wind_display() {
         if (strcmp(updates_path, "environment.wind.angleApparent")==0) {
           //adjust so 0 is at the top
           float apparentWindangleradian = environment_wind_angleApparent;
-          Serial.print("apparentWindangleradian= ");
-          Serial.println(apparentWindangleradian);
-          //Rotate the coordinates so that the top is 0 (normally 90 degrees)
           if (apparentWindangleradian < 0){
-            apparentWindangle = (abs(180/PI) * apparentWindangleradian) + 180;
             apparentWindangleradian = apparentWindangleradian - (PI/2);
             if (apparentWindangleradian < -PI){
               apparentWindangleradian = (2*PI) - abs(apparentWindangleradian);
@@ -619,10 +556,7 @@ void wind_display() {
           }
           else {
             apparentWindangleradian = apparentWindangleradian - (PI/2);
-            apparentWindangle = (180/PI) * apparentWindangleradian;
           }
-          //Serial.print("apparentWindangleradiannew= ");
-          //Serial.println(apparentWindangleradian);
 
           // Clear the center of the rose
           M5.Lcd.fillEllipse(ez.canvas.lmargin() + 160, ez.canvas.top() + 100, 69, 69, ez.theme->background);
@@ -683,19 +617,22 @@ void wind_display() {
 
     btnpressed = ez.buttons.poll();
     }
-  }
-  /*if (btnpressed == "Location") {
+
+  if (btnpressed == "Location") {
     ez.canvas.reset();
     location_display();
   }
   if (btnpressed == "Engine") {
     ez.canvas.reset();
     engine_display();
-  }*/
+  }
+}
+
 void engine_display() {
   M5.Lcd.fillScreen(WHITE);
   ez.buttons.wait("OK");
 }
+
 void electrical_display() {
   M5.Lcd.fillScreen(WHITE);
   ez.buttons.wait("OK");
