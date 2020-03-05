@@ -166,8 +166,8 @@ void subscribe_datastream () {
   subscribe_0["path"] = "navigation.position";
   JsonObject subscribe_1 = subscribe.createNestedObject();
   subscribe_1["path"] = "navigation.speedOverGround";
-  JsonObject subscribe_2 = subscribe.createNestedObject();
-  subscribe_2["path"] = "navigation.magneticVariation";
+  //JsonObject subscribe_2 = subscribe.createNestedObject();
+  //subscribe_2["path"] = "navigation.magneticVariation";
   //JsonObject subscribe_3 = subscribe.createNestedObject();
   //subscribe_3["path"] = "navigation.magneticVariationAgeOfService";
   JsonObject subscribe_4 = subscribe.createNestedObject();
@@ -190,8 +190,8 @@ void subscribe_datastream () {
   subscribe_13["path"] = "environment.wind.angleApparent";
   JsonObject subscribe_14 = subscribe.createNestedObject();
   subscribe_14["path"] = "environment.wind.speedApparent";
-  JsonObject subscribe_15 = subscribe.createNestedObject();
-  subscribe_15["path"] = "environment.water.temperture";
+  //JsonObject subscribe_15 = subscribe.createNestedObject();
+  //subscribe_15["path"] = "environment.water.temperture";
   //JsonObject subscribe_16 = subscribe.createNestedObject();
   //subscribe_16["path"] = "environment.depth.surfaceToTransducer";
   JsonObject subscribe_17 = subscribe.createNestedObject();
