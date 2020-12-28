@@ -24,7 +24,6 @@ void clearscreen();
 const char* handleReceivedMessage(String message);
 String DegreesToDegMin(float x);
 void location_display();
-String DegreesToDegMin(float x);
 void engine_display();
 void electrical_display();
 void wind_display();
