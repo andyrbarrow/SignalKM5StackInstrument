@@ -368,31 +368,40 @@ void displayInfo(const char * updates_path) {
 }
 
 void displayTank(const char * updates_path) {
-  ez.canvas.font(&UbuntuMono_Regular16pt7b);
+  int tank1Percent;
+  int tank2Percent;
+  int percentStart = 220; //x position where the dynamic percent text starts
+  
   if (strcmp(updates_path, "tanks.freshWater.forwardTank.currentLevel")==0) {
     Serial.println(tanks_freshWater_forwardTank_currentLevel);
-    ez.canvas.clear();
     ez.canvas.lmargin(10);
-    ez.canvas.y(ez.canvas.top() + 30);
+    ez.canvas.y(ez.canvas.top() + 40);
     ez.canvas.x(ez.canvas.lmargin());
-    ez.canvas.print("Forward: ");
-    ez.canvas.y(ez.canvas.top() + 30);
-    ez.canvas.x(ez.canvas.lmargin() + 180);
-    ez.canvas.print(tanks_freshWater_forwardTank_currentLevel);
+    ez.canvas.font(&FreeSansBold18pt7b);
+    ez.canvas.print("Forward:");
+    ez.canvas.font(&FreeSans18pt7b);
+    M5.lcd.fillRect(percentStart, ez.canvas.top() + 40, ez.canvas.width() - percentStart, ez.fontHeight(), ez.theme->background);
+    ez.canvas.y(ez.canvas.top() + 40);
+    ez.canvas.x(ez.canvas.lmargin() + percentStart);
+    tank1Percent = tanks_freshWater_forwardTank_currentLevel;
+    ez.canvas.print(tank1Percent);
     ez.canvas.println("%");
     ez.canvas.println();
   }
   if (strcmp(updates_path, "tanks.freshWater.starboardTank.currentLevel")==0) {
     Serial.println(tanks_freshWater_starboardTank_currentLevel);
     ez.canvas.lmargin(10);
-    ez.canvas.y(ez.canvas.top() + 90);
+    ez.canvas.y(ez.canvas.top() + 110);
     ez.canvas.x(ez.canvas.lmargin());
-    ez.canvas.print("Starboard: ");
-    ez.canvas.y(ez.canvas.top() + 90);
-    ez.canvas.x(ez.canvas.lmargin() + 180);
-    ez.canvas.print(tanks_freshWater_starboardTank_currentLevel);
+    ez.canvas.font(&FreeSansBold18pt7b);
+    ez.canvas.print("Starboard:");
+    ez.canvas.font(&FreeSans18pt7b);
+    M5.lcd.fillRect(percentStart, ez.canvas.top() + 110, ez.canvas.width() - percentStart, ez.fontHeight(), ez.theme->background);
+    ez.canvas.y(ez.canvas.top() + 110);
+    ez.canvas.x(ez.canvas.lmargin() + percentStart);
+    tank2Percent = tanks_freshWater_starboardTank_currentLevel;
+    ez.canvas.print(tank2Percent);
     ez.canvas.println("%");
-    ez.canvas.println();
   }
 }
 
