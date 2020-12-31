@@ -24,15 +24,16 @@ void clearscreen();
 const char* handleReceivedMessage(String message);
 String DegreesToDegMin(float x);
 void location_display();
-void engine_display();
+void tank_display();
 void electrical_display();
 void wind_display();
+void displayTank(const char * updates_path);
+void displayInfo(const char * updates_path);
 
 WebSocketClient webSocketClient;
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
-StaticJsonDocument<1024> skdoc;
 
 //Declare globals for all the info coming in
 float navigation_position_latitude;
@@ -50,6 +51,12 @@ float navigation_headingMagnetic;
 float navigation_speedThroughWater;
 float navigation_headingTrue;
 float navigation_datetime;
+float electrical_batteries_house_voltage;
+float electrical_batteries_house_current;
+float electrical_batteries_engine_voltage;
+float electrical_batteries_engine_current;
+float tanks_freshWater_forwardTank_currentLevel;
+float tanks_freshWater_starboardTank_currentLevel;
 
 String northSouth = "N ";
 String eastWest = "E ";
@@ -62,7 +69,7 @@ float windAngleOld;
 const char* handleReceivedMessage(String message){
 
   //Serial.println(message);
-  StaticJsonDocument<2048> doc;
+  StaticJsonDocument<4096> doc;
   DeserializationError err = deserializeJson(doc, message);
 
   // Parse succeeded?
@@ -74,6 +81,7 @@ const char* handleReceivedMessage(String message){
   JsonObject obj = doc.as<JsonObject>();
 
   const char* updates_path = obj["updates"][0]["values"][0]["path"];
+  
   if (updates_path != nullptr) {
 
     //load up the global variables
@@ -101,13 +109,13 @@ const char* handleReceivedMessage(String message){
     }
     if (strcmp(updates_path, "navigation.speedOverGround")==0) {
       navigation_speedOverGround = obj["updates"][0]["values"][0]["value"];
-      }
+    }
     if (strcmp(updates_path, "navigation.magneticVariation")==0) {
       navigation_magneticVariation = obj["updates"][0]["values"][0]["value"];
     }
     if (strcmp(updates_path, "navigation.courseOverGroundTrue")==0) {
       navigation_courseOverGroundTrue = obj["updates"][0]["values"][0]["value"];
-      }
+    }
     if (strcmp(updates_path, "navigation.headingMagnetic")==0) {
       navigation_headingMagnetic = obj["updates"][0]["values"][0]["value"];
     }
@@ -117,8 +125,26 @@ const char* handleReceivedMessage(String message){
     if (strcmp(updates_path, "navigation.headingTrue")==0) {
       navigation_headingTrue = obj["updates"][0]["values"][0]["value"];
     }
-    if (strcmp(updates_path, "navigation_datetime")==0) {
+    if (strcmp(updates_path, "navigation.datetime")==0) {
       navigation_datetime = obj["updates"][0]["values"][0]["value"];
+    }
+    if (strcmp(updates_path, "electrical.batteries.house.voltage")==0) {
+      electrical_batteries_house_voltage = obj["updates"][0]["values"][0]["value"];
+    }
+    if (strcmp(updates_path, "electrical.batteries.house.current")==0) {
+      electrical_batteries_house_current = obj["updates"][0]["values"][0]["value"];
+    }
+    if (strcmp(updates_path, "electrical.batteries.engine.voltage")==0) {
+      electrical_batteries_engine_voltage = obj["updates"][0]["values"][0]["value"];
+    }
+    if (strcmp(updates_path, "electrical.batteries.engine.current")==0) {
+      electrical_batteries_engine_current = obj["updates"][0]["values"][0]["value"];
+    }
+    if (strcmp(updates_path, "tanks.freshWater.forwardTank.currentLevel")==0) {
+      tanks_freshWater_forwardTank_currentLevel = obj["updates"][0]["values"][0]["value"];
+    }
+    if (strcmp(updates_path, "tanks.freshWater.starboardTank.currentLevel")==0) {
+      tanks_freshWater_starboardTank_currentLevel = obj["updates"][0]["values"][0]["value"];
     }
     return updates_path;
   }
@@ -199,7 +225,18 @@ void subscribe_datastream () {
   //subscribe_18["path"] = "environment.depth.belowSurface";
   //JsonObject subscribe_19 = subscribe.createNestedObject();
   //subscribe_19["path"] = "environment.depth.belowKeel";
-
+  JsonObject subscribe_20 = subscribe.createNestedObject();
+  subscribe_20["path"] = "electrical.batteries.house.voltage";
+  JsonObject subscribe_21 = subscribe.createNestedObject();
+  subscribe_21["path"] = "electrical.batteries.house.current";
+  JsonObject subscribe_22 = subscribe.createNestedObject();
+  subscribe_22["path"] = "electrical.batteries.engine.voltage";
+  JsonObject subscribe_23 = subscribe.createNestedObject();
+  subscribe_23["path"] = "electrical.batteries.engine.current";
+  JsonObject subscribe_24 = subscribe.createNestedObject();
+  subscribe_24["path"] = "tanks.freshWater.forwardTank.currentLevel";
+  JsonObject subscribe_25 = subscribe.createNestedObject();
+  subscribe_25["path"] = "tanks.freshWater.starboardTank.currentLevel";
   serializeJson(doc, data);
   webSocketClient.sendData(data);
 
@@ -330,6 +367,35 @@ void displayInfo(const char * updates_path) {
   Serial.println();
 }
 
+void displayTank(const char * updates_path) {
+  ez.canvas.font(&UbuntuMono_Regular16pt7b);
+  if (strcmp(updates_path, "tanks.freshWater.forwardTank.currentLevel")==0) {
+    Serial.println(tanks_freshWater_forwardTank_currentLevel);
+    ez.canvas.clear();
+    ez.canvas.lmargin(10);
+    ez.canvas.y(ez.canvas.top() + 30);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.print("Forward: ");
+    ez.canvas.y(ez.canvas.top() + 30);
+    ez.canvas.x(ez.canvas.lmargin() + 180);
+    ez.canvas.print(tanks_freshWater_forwardTank_currentLevel);
+    ez.canvas.println("%");
+    ez.canvas.println();
+  }
+  if (strcmp(updates_path, "tanks.freshWater.starboardTank.currentLevel")==0) {
+    Serial.println(tanks_freshWater_starboardTank_currentLevel);
+    ez.canvas.lmargin(10);
+    ez.canvas.y(ez.canvas.top() + 90);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.print("Starboard: ");
+    ez.canvas.y(ez.canvas.top() + 90);
+    ez.canvas.x(ez.canvas.lmargin() + 180);
+    ez.canvas.print(tanks_freshWater_starboardTank_currentLevel);
+    ez.canvas.println("%");
+    ez.canvas.println();
+  }
+}
+
 // This routine builds a LAT and LONG string
 String DegreesToDegMin(float x) {
   // The abs function doesn't work on floats, so we do it manually
@@ -442,8 +508,8 @@ void loop() {
   mainmenu.txtBig();
   mainmenu.addItem("Location", location_display);
   mainmenu.addItem("Wind", wind_display);
-  //mainmenu.addItem("Engine", engine_display);
-  //mainmenu.addItem("Electrical", electrical_display);
+  mainmenu.addItem("Tanks", tank_display);
+  mainmenu.addItem("Electrical", electrical_display);
   mainmenu.addItem("Settings", ez.settings.menu);
   mainmenu.upOnFirst("last|up");
   mainmenu.downOnLast("first|down");
@@ -485,7 +551,7 @@ void location_display() {
   }
   if (btnpressed == "Wind") {
     ez.canvas.reset();
-    //wind_display();
+    wind_display();
   }
 }
 
@@ -496,7 +562,7 @@ void wind_display() {
 
   ezMenu windDisplay;
   ez.header.show("Wind");
-  ez.buttons.show("Location # Main Menu # Engine");
+  ez.buttons.show("Location # Main Menu # Tanks");
   ez.canvas.font(&UbuntuMono_Regular16pt7b);
 
   drawWindScreen();
@@ -585,15 +651,42 @@ void wind_display() {
     ez.canvas.reset();
     location_display();
   }
-  if (btnpressed == "Engine") {
+  if (btnpressed == "Tanks") {
     ez.canvas.reset();
-    engine_display();
+    tank_display();
   }
 }
 
-void engine_display() {
-  M5.Lcd.fillScreen(WHITE);
-  ez.buttons.wait("OK");
+void tank_display() {
+  String data;
+  ezMenu tankDisplay;
+  ez.header.show("Water Tanks");
+  ez.buttons.show("Wind # Main Menu # Electrical");
+  String btnpressed = ez.buttons.poll();
+  while (btnpressed == "") {
+    if (client.connected()) {
+      webSocketClient.getData(data);
+      if (data.length() > 0) {
+        displayTank(handleReceivedMessage(data));
+        M5.Lcd.setTextWrap(true, true);
+        }
+    } else {
+      Serial.println("Client disconnected. Reconnecting");
+      client_connect();
+      server_handshake ();
+      subscribe_datastream();
+    }
+    delay(10);  // <- fixes some issues with WiFi stability
+    btnpressed = ez.buttons.poll();
+  }
+  if (btnpressed == "Wind") {
+    ez.canvas.reset();
+    wind_display();
+  }
+  if (btnpressed == "Electrical") {
+    ez.canvas.reset();
+    electrical_display();
+  }
 }
 
 void electrical_display() {
