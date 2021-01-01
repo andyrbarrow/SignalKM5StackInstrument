@@ -6,6 +6,9 @@
 #include <M5ez.h>
 #include <ezTime.h>
 #include "UbuntuMono_Regular16pt7b.h"
+#include "UbuntuMono_B18pt7b.h"
+#include "UbuntuMono_R18pt7b.h"
+#include "LittleLordFontleroyNF60pt7b.h"
 
 #define DEG2RAD 0.0174532925
 
@@ -251,7 +254,7 @@ void clearscreen() {
 }
 
 void displayInfo(const char * updates_path) {
-  ez.canvas.font(&UbuntuMono_Regular16pt7b);
+  ez.canvas.font(&FreeSans18pt7b);
   // Latitude
   if (strcmp(updates_path, "navigation.position")==0) {
     Serial.println(navigation_position_latitude);
@@ -270,11 +273,15 @@ void displayInfo(const char * updates_path) {
     ez.canvas.lmargin(10);
     ez.canvas.y(ez.canvas.top() + 10);
     ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 10, 320, 23, ez.theme->background); //erase partial place for updating data
-    ez.canvas.print("LAT: ");
-    ez.canvas.println(latiTude);
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.println("LAT/LON");
+    ez.canvas.y(ez.canvas.top() + 40);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 40, ez.canvas.width(), ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.print(latiTude);
     // Kludge to get a degree symbol
-    M5.Lcd.drawEllipse(ez.canvas.lmargin() + 164, ez.canvas.top() + 13, 3, 3, ez.theme->foreground);
+    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 164, ez.canvas.top() + 13, 3, 3, ez.theme->foreground);
     //Longitude
     if (navigation_position_longitude < 0) {
       eastWest = "W ";
@@ -285,48 +292,57 @@ void displayInfo(const char * updates_path) {
     }
     longiTude = eastWest;
     longiTude += DegreesToDegMin(navigation_position_longitude);
-    ez.canvas.y(ez.canvas.top() + 40);
+    ez.canvas.y(ez.canvas.top() + 70);
     ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(10, ez.canvas.top() + 40, 320, 23, ez.theme->background); //erase partial place for updating data
-    ez.canvas.print("LON: ");
-    ez.canvas.print(longiTude);
+    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 70, ez.canvas.width(), ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    //ez.canvas.print("LON: ");
+    ez.canvas.println(longiTude);
+
     // Kludge to get a degree symbol
-    M5.Lcd.drawEllipse(ez.canvas.lmargin() + 164, ez.canvas.top() + 43, 3, 3, ez.theme->foreground);
+    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 164, ez.canvas.top() + 43, 3, 3, ez.theme->foreground);
     }
 // We are going to print in knots, so all speeds need to be converted from meters/sec
 // Speed over ground
   if (strcmp(updates_path, "navigation.speedOverGround")==0) {
-    ez.canvas.y(ez.canvas.top() + 70);
+    ez.canvas.y(ez.canvas.top() + 100);
     ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(0, ez.canvas.top() + 70, 160, 23, ez.theme->background); //erase partial place for updating data
+    M5.lcd.fillRect(0, ez.canvas.top() + 100, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
     ez.canvas.print("SOG:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
     if ((navigation_speedOverGround/0.514444) < 10) ez.canvas.print(" ");
     ez.canvas.print(navigation_speedOverGround/0.514444, 1);
     }
   // Course over ground
   if (strcmp(updates_path, "navigation.courseOverGroundTrue")==0) {
-    ez.canvas.y(ez.canvas.top() + 70);
+    ez.canvas.y(ez.canvas.top() + 100);
     ez.canvas.x(ez.canvas.lmargin() + 160);
-    M5.lcd.fillRect(160, ez.canvas.top() + 70, 160, 23, ez.theme->background); //erase partial place for updating data
+    M5.lcd.fillRect(160, ez.canvas.top() + 100, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
     ez.canvas.print("COG:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
     ez.canvas.print(navigation_courseOverGroundTrue*57.2958, 0);
-    M5.Lcd.drawEllipse(ez.canvas.lmargin() + 276, ez.canvas.top() + 73, 3, 3, ez.theme->foreground);
+    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 276, ez.canvas.top() + 73, 3, 3, ez.theme->foreground);
     }
   //Apparent Wind Speed
   if (strcmp(updates_path, "environment.wind.speedApparent")==0) {
-    ez.canvas.y(ez.canvas.top() + 100);
+    ez.canvas.y(ez.canvas.top() + 130);
     ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(0, ez.canvas.top() + 100, 170, 23, ez.theme->background); //erase partial place for updating data
+    M5.lcd.fillRect(0, ez.canvas.top() + 130, 170, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
     ez.canvas.print("AWS:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
     if (environment_wind_speedApparent/0.514444 < 10)  ez.canvas.print(" ");
     ez.canvas.print(environment_wind_speedApparent/0.514444,1);
     }
   // Apparent Wind Angle
   if (strcmp(updates_path, "environment.wind.angleApparent")==0) {
-    ez.canvas.y(ez.canvas.top() + 100);
+    ez.canvas.y(ez.canvas.top() + 130);
     ez.canvas.x(ez.canvas.lmargin() + 160);
-    M5.lcd.fillRect(170, ez.canvas.top() + 100, 160, 23, ez.theme->background); //erase partial place for updating data
+    M5.lcd.fillRect(170, ez.canvas.top() + 130, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
     ez.canvas.print("AWA:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
     if (environment_wind_angleApparent <0) {
       ez.canvas.print("P");
       ez.canvas.print(environment_wind_angleApparent*-57.2958,0);
@@ -335,24 +351,27 @@ void displayInfo(const char * updates_path) {
       ez.canvas.print("S");
       ez.canvas.print(environment_wind_angleApparent*57.2958,0);
       }
-    M5.Lcd.drawEllipse(ez.canvas.lmargin() + 292, ez.canvas.top() + 103, 3, 3, ez.theme->foreground);
+    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 292, ez.canvas.top() + 103, 3, 3, ez.theme->foreground);
     }
   // True Wind Speed
   if (strcmp(updates_path, "environment.wind.speedTrue")==0) {
-    ez.canvas.y(ez.canvas.top() + 130);
+    ez.canvas.y(ez.canvas.top() + 160);
     ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(0, ez.canvas.top() + 130, 170, 23, ez.theme->background); //erase partial place for updating data
+    M5.lcd.fillRect(0, ez.canvas.top() + 160, 170, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
     ez.canvas.print("TWS:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
     if (environment_wind_speedTrue/0.514444 < 10)  ez.canvas.print(" ");
     ez.canvas.print(environment_wind_speedTrue/0.514444,1);
     }
   // True Wind Angle
   if (strcmp(updates_path, "environment.wind.angleTrueWater")==0) {
-    ez.canvas.y(ez.canvas.top() + 130);
+    ez.canvas.y(ez.canvas.top() + 160);
     ez.canvas.x(ez.canvas.lmargin() + 160);
-    M5.lcd.fillRect(170, ez.canvas.top() + 130, 160, 23, ez.theme->background); //erase partial place for updating data
-    //M5.lcd.fillRect(ez.canvas.lmargin() + 160, ez.canvas.top() + 130, 160, 23, ez.theme->background); //erase partial place for updating data
+    M5.lcd.fillRect(170, ez.canvas.top() + 160, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
     ez.canvas.print("TWA:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
     int angledegrees;
     if (environment_wind_angleTrueWater < 0) {
       angledegrees = (environment_wind_angleTrueWater*-57.2958)+180;
@@ -361,7 +380,7 @@ void displayInfo(const char * updates_path) {
       angledegrees = environment_wind_angleTrueWater*57.2958;
     }
     ez.canvas.print(angledegrees);
-    M5.Lcd.drawEllipse(ez.canvas.lmargin() + 276, ez.canvas.top() + 133, 3, 3, ez.theme->foreground);
+    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 276, ez.canvas.top() + 133, 3, 3, ez.theme->foreground);
   }
 
   Serial.println();
@@ -503,6 +522,13 @@ void setup() {
   while (!Serial) continue;
   delay(500);
   ezt::setDebug(INFO);
+  ez.canvas.clear();
+  ez.canvas.font(&LittleLordFontleroyNF60pt7b);
+  ez.canvas.x(40);
+  ez.canvas.y(40);
+  m5.lcd.setTextColor(BLUE);
+  ez.canvas.print("Hey Ya");
+  delay(3000);
 
   // This is the timezone to start with.
   Timezone Mexico;
@@ -510,10 +536,11 @@ void setup() {
   if (!Mexico.setCache(0)) Mexico.setLocation("America/Mexico_City");
   Mexico.setDefault();
   void setServer(String ntp_server = localNtp);
+
 }
 
 void loop() {
-  ezMenu mainmenu("HeyYA Info System");
+  ezMenu mainmenu("Hey Ya Info System");
   mainmenu.txtBig();
   mainmenu.addItem("Location", location_display);
   mainmenu.addItem("Wind", wind_display);
