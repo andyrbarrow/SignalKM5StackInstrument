@@ -16,14 +16,11 @@ const char* ssid     = "openplotter";
 const char* password = "margaritaville";
 char path[] = "/signalk/v1/stream?subcribe=none";
 char host[] = "10.10.10.1";
-char localNtp[] = "10.10.10.1";
-
 
 //Declare functions
 void client_connect();
 void subscribe_datastream ();
 void server_handshake ();
-void clearscreen();
 const char* handleReceivedMessage(String message);
 String DegreesToDegMin(float x);
 void location_display();
@@ -32,6 +29,9 @@ void electrical_display();
 void wind_display();
 void displayTank(const char * updates_path);
 void displayInfo(const char * updates_path);
+void displayElectrical(const char * updates_path);
+uint16_t SetTimeFromGPS();
+int parseDateTime (int start, int end);
 
 WebSocketClient webSocketClient;
 
@@ -53,7 +53,7 @@ float navigation_courseOverGroundTrue;
 float navigation_headingMagnetic;
 float navigation_speedThroughWater;
 float navigation_headingTrue;
-float navigation_datetime;
+const char* navigation_datetime_value;
 float electrical_batteries_house_voltage;
 float electrical_batteries_house_current;
 float electrical_batteries_engine_voltage;
@@ -61,10 +61,15 @@ float electrical_batteries_engine_current;
 float tanks_freshWater_forwardTank_currentLevel;
 float tanks_freshWater_starboardTank_currentLevel;
 
+//Use this to set time
+unsigned long resetTimeInterval = 300000; //reset time from GPS every 5 minutes
+
 String northSouth = "N ";
 String eastWest = "E ";
 String latiTude = "";
 String longiTude = "";
+String old_latiTude = "";
+String old_longiTude = "";
 int circleCenterX;
 int circleCenterY;
 float windAngleOld;
@@ -84,7 +89,7 @@ const char* handleReceivedMessage(String message){
   JsonObject obj = doc.as<JsonObject>();
 
   const char* updates_path = obj["updates"][0]["values"][0]["path"];
-  
+
   if (updates_path != nullptr) {
 
     //load up the global variables
@@ -129,7 +134,7 @@ const char* handleReceivedMessage(String message){
       navigation_headingTrue = obj["updates"][0]["values"][0]["value"];
     }
     if (strcmp(updates_path, "navigation.datetime")==0) {
-      navigation_datetime = obj["updates"][0]["values"][0]["value"];
+      navigation_datetime_value = obj["updates"][0]["values"][0]["value"];
     }
     if (strcmp(updates_path, "electrical.batteries.house.voltage")==0) {
       electrical_batteries_house_voltage = obj["updates"][0]["values"][0]["value"];
@@ -151,6 +156,7 @@ const char* handleReceivedMessage(String message){
     }
     return updates_path;
   }
+  return "";
 }
 
 void client_connect () {
@@ -246,184 +252,6 @@ void subscribe_datastream () {
   Serial.println("Connection String Sent");
 }
 
-void clearscreen() {
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setTextColor(WHITE ,BLACK);
-  M5.Lcd.setTextSize(2);
-  M5.Lcd.setCursor(0,0);
-}
-
-void displayInfo(const char * updates_path) {
-  ez.canvas.font(&FreeSans18pt7b);
-  // Latitude
-  if (strcmp(updates_path, "navigation.position")==0) {
-    Serial.println(navigation_position_latitude);
-    if (navigation_position_latitude < 0) {
-      northSouth = "S ";
-      }
-      else
-      {
-        northSouth = "N ";
-      }
-    latiTude = northSouth;
-    latiTude += DegreesToDegMin(navigation_position_latitude);
-    Serial.print("Converted Latitude is: ");
-    Serial.println(latiTude);
-    //ez.canvas.clear();
-    ez.canvas.lmargin(10);
-    ez.canvas.y(ez.canvas.top() + 10);
-    ez.canvas.x(ez.canvas.lmargin());
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.println("LAT/LON");
-    ez.canvas.y(ez.canvas.top() + 40);
-    ez.canvas.x(ez.canvas.lmargin());
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 40, ez.canvas.width(), ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.print(latiTude);
-    // Kludge to get a degree symbol
-    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 164, ez.canvas.top() + 13, 3, 3, ez.theme->foreground);
-    //Longitude
-    if (navigation_position_longitude < 0) {
-      eastWest = "W ";
-    }
-    else
-    {
-      eastWest = "E ";
-    }
-    longiTude = eastWest;
-    longiTude += DegreesToDegMin(navigation_position_longitude);
-    ez.canvas.y(ez.canvas.top() + 70);
-    ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 70, ez.canvas.width(), ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    //ez.canvas.print("LON: ");
-    ez.canvas.println(longiTude);
-
-    // Kludge to get a degree symbol
-    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 164, ez.canvas.top() + 43, 3, 3, ez.theme->foreground);
-    }
-// We are going to print in knots, so all speeds need to be converted from meters/sec
-// Speed over ground
-  if (strcmp(updates_path, "navigation.speedOverGround")==0) {
-    ez.canvas.y(ez.canvas.top() + 100);
-    ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(0, ez.canvas.top() + 100, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.print("SOG:");
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    if ((navigation_speedOverGround/0.514444) < 10) ez.canvas.print(" ");
-    ez.canvas.print(navigation_speedOverGround/0.514444, 1);
-    }
-  // Course over ground
-  if (strcmp(updates_path, "navigation.courseOverGroundTrue")==0) {
-    ez.canvas.y(ez.canvas.top() + 100);
-    ez.canvas.x(ez.canvas.lmargin() + 160);
-    M5.lcd.fillRect(160, ez.canvas.top() + 100, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.print("COG:");
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    ez.canvas.print(navigation_courseOverGroundTrue*57.2958, 0);
-    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 276, ez.canvas.top() + 73, 3, 3, ez.theme->foreground);
-    }
-  //Apparent Wind Speed
-  if (strcmp(updates_path, "environment.wind.speedApparent")==0) {
-    ez.canvas.y(ez.canvas.top() + 130);
-    ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(0, ez.canvas.top() + 130, 170, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.print("AWS:");
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    if (environment_wind_speedApparent/0.514444 < 10)  ez.canvas.print(" ");
-    ez.canvas.print(environment_wind_speedApparent/0.514444,1);
-    }
-  // Apparent Wind Angle
-  if (strcmp(updates_path, "environment.wind.angleApparent")==0) {
-    ez.canvas.y(ez.canvas.top() + 130);
-    ez.canvas.x(ez.canvas.lmargin() + 160);
-    M5.lcd.fillRect(170, ez.canvas.top() + 130, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.print("AWA:");
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    if (environment_wind_angleApparent <0) {
-      ez.canvas.print("P");
-      ez.canvas.print(environment_wind_angleApparent*-57.2958,0);
-      }
-    else {
-      ez.canvas.print("S");
-      ez.canvas.print(environment_wind_angleApparent*57.2958,0);
-      }
-    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 292, ez.canvas.top() + 103, 3, 3, ez.theme->foreground);
-    }
-  // True Wind Speed
-  if (strcmp(updates_path, "environment.wind.speedTrue")==0) {
-    ez.canvas.y(ez.canvas.top() + 160);
-    ez.canvas.x(ez.canvas.lmargin());
-    M5.lcd.fillRect(0, ez.canvas.top() + 160, 170, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.print("TWS:");
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    if (environment_wind_speedTrue/0.514444 < 10)  ez.canvas.print(" ");
-    ez.canvas.print(environment_wind_speedTrue/0.514444,1);
-    }
-  // True Wind Angle
-  if (strcmp(updates_path, "environment.wind.angleTrueWater")==0) {
-    ez.canvas.y(ez.canvas.top() + 160);
-    ez.canvas.x(ez.canvas.lmargin() + 160);
-    M5.lcd.fillRect(170, ez.canvas.top() + 160, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
-    ez.canvas.font(&UbuntuMono_B18pt7b);
-    ez.canvas.print("TWA:");
-    ez.canvas.font(&UbuntuMono_R18pt7b);
-    int angledegrees;
-    if (environment_wind_angleTrueWater < 0) {
-      angledegrees = (environment_wind_angleTrueWater*-57.2958)+180;
-    }
-    else {
-      angledegrees = environment_wind_angleTrueWater*57.2958;
-    }
-    ez.canvas.print(angledegrees);
-    //M5.Lcd.drawEllipse(ez.canvas.lmargin() + 276, ez.canvas.top() + 133, 3, 3, ez.theme->foreground);
-  }
-
-  Serial.println();
-}
-
-void displayTank(const char * updates_path) {
-  int tank1Percent;
-  int tank2Percent;
-  int percentStart = 220; //x position where the dynamic percent text starts
-  
-  if (strcmp(updates_path, "tanks.freshWater.forwardTank.currentLevel")==0) {
-    Serial.println(tanks_freshWater_forwardTank_currentLevel);
-    ez.canvas.lmargin(10);
-    ez.canvas.y(ez.canvas.top() + 40);
-    ez.canvas.x(ez.canvas.lmargin());
-    ez.canvas.font(&FreeSansBold18pt7b);
-    ez.canvas.print("Forward:");
-    ez.canvas.font(&FreeSans18pt7b);
-    M5.lcd.fillRect(percentStart, ez.canvas.top() + 40, ez.canvas.width() - percentStart, ez.fontHeight(), ez.theme->background);
-    ez.canvas.y(ez.canvas.top() + 40);
-    ez.canvas.x(ez.canvas.lmargin() + percentStart);
-    tank1Percent = tanks_freshWater_forwardTank_currentLevel;
-    ez.canvas.print(tank1Percent);
-    ez.canvas.println("%");
-    ez.canvas.println();
-  }
-  if (strcmp(updates_path, "tanks.freshWater.starboardTank.currentLevel")==0) {
-    Serial.println(tanks_freshWater_starboardTank_currentLevel);
-    ez.canvas.lmargin(10);
-    ez.canvas.y(ez.canvas.top() + 110);
-    ez.canvas.x(ez.canvas.lmargin());
-    ez.canvas.font(&FreeSansBold18pt7b);
-    ez.canvas.print("Starboard:");
-    ez.canvas.font(&FreeSans18pt7b);
-    M5.lcd.fillRect(percentStart, ez.canvas.top() + 110, ez.canvas.width() - percentStart, ez.fontHeight(), ez.theme->background);
-    ez.canvas.y(ez.canvas.top() + 110);
-    ez.canvas.x(ez.canvas.lmargin() + percentStart);
-    tank2Percent = tanks_freshWater_starboardTank_currentLevel;
-    ez.canvas.print(tank2Percent);
-    ez.canvas.println("%");
-  }
-}
-
 // This routine builds a LAT and LONG string
 String DegreesToDegMin(float x) {
   // The abs function doesn't work on floats, so we do it manually
@@ -440,7 +268,7 @@ String DegreesToDegMin(float x) {
   if (degRaw < 100) degMin = "0";
   if (degRaw < 10) degMin = degMin + "0";
   degMin = degMin + degRaw;
-  degMin = degMin + " "; //leave some space for the degree character which comes later
+  degMin = degMin + " ";
   if (minutesRemainder < 10) degMin = degMin + "0";
   degMin = degMin + String(minutesRemainder, 4);
   degMin = degMin + "\'";
@@ -478,89 +306,58 @@ int fillArc(int x, int y, int start_angle, int seg_count, int rx, int ry, int w,
   return 0;
 }
 
-void drawWindScreen() {
-  // Draw a compass rose
-  M5.Lcd.fillEllipse(ez.canvas.lmargin() + 160, ez.canvas.top() + 100, 93, 93, ez.theme->foreground);
-  M5.Lcd.fillEllipse(ez.canvas.lmargin() + 160, ez.canvas.top() + 100, 90, 90, ez.theme->background);
-  circleCenterX = ez.canvas.lmargin() + 160;
-  circleCenterY = ez.canvas.top() + 100;
-  // do the small ticks every 15 degrees
-  int roseAnglemark = 0;
-  while (roseAnglemark < 360) {
-    float roseAnglemarkradian = ((roseAnglemark - 90) * 71) / 4068.0;
-    M5.Lcd.drawLine (int(circleCenterX + (80 * cos(roseAnglemarkradian))), int(circleCenterY + (80 * sin(roseAnglemarkradian))), int(circleCenterX + (90 * cos(roseAnglemarkradian))), int(circleCenterY + (90 * sin(roseAnglemarkradian))), ez.theme->foreground);
-    roseAnglemark += 15;
-  }
-  // do the longer ticks every 45 degrees
-  roseAnglemark = 0;
-  while (roseAnglemark < 360) {
-    float roseAnglemarkradian = ((roseAnglemark - 90) * 71) / 4068.0;
-    M5.Lcd.drawLine (int(circleCenterX + (70 * cos(roseAnglemarkradian))), int(circleCenterY + (70 * sin(roseAnglemarkradian))), int(circleCenterX + (90 * cos(roseAnglemarkradian))), int(circleCenterY + (90 * sin(roseAnglemarkradian))), TFT_RED);
-    roseAnglemark += 45;
-  }
-  // put red and green arcs on each side
-  fillArc(circleCenterX, circleCenterY, 45, 14, 93, 93, 5, TFT_GREEN);
-  fillArc(circleCenterX, circleCenterY, 210, 14, 93, 93, 5, TFT_RED);
-
-  // put App and True on left and right
-  ez.canvas.pos(ez.canvas.lmargin() + 10, ez.canvas.top() + 10);
-  ez.canvas.println("App");
-  ez.canvas.pos(ez.canvas.lmargin() + 250, ez.canvas.top() + 10);
-  ez.canvas.print("True");
-}
-
-void setup() {
-  #include <themes/default.h>
-  #include <themes/dark.h>
-  #include "heyya.h"
-
-  M5.begin();
-  ez.begin();
-
-  M5.Lcd.setTextWrap(true, true);
-  Serial.begin(115200);
-  while (!Serial) continue;
-  delay(500);
-  ezt::setDebug(INFO);
-  ez.canvas.clear();
-  ez.canvas.font(&LittleLordFontleroyNF60pt7b);
-  ez.canvas.x(40);
-  ez.canvas.y(40);
-  m5.lcd.setTextColor(BLUE);
-  ez.canvas.print("Hey Ya");
-  delay(3000);
-
-  // This is the timezone to start with.
-  Timezone Mexico;
-  Mexico.setLocation("America/Mexico_City");
-  if (!Mexico.setCache(0)) Mexico.setLocation("America/Mexico_City");
-  Mexico.setDefault();
-  void setServer(String ntp_server = localNtp);
-
-}
-
-void loop() {
-  ezMenu mainmenu("Hey Ya Info System");
-  mainmenu.txtBig();
-  mainmenu.addItem("Location", location_display);
-  mainmenu.addItem("Wind", wind_display);
-  mainmenu.addItem("Tanks", tank_display);
-  mainmenu.addItem("Electrical", electrical_display);
-  mainmenu.addItem("Settings", ez.settings.menu);
-  mainmenu.upOnFirst("last|up");
-  mainmenu.downOnLast("first|down");
-  mainmenu.run();
+uint16_t SetTimeFromGPS(){
+  uint8_t GPSMonth, GPSDay, GPSHour, GPSMinute, GPSSecond;
+  uint16_t GPSYear;
   String data;
-  if (!client.connected()) {
+  const char* updates_path;
+
+  Timezone UTC;
+  if (client.connected()) {
+  webSocketClient.getData(data);
+    if (data.length() > 0) {
+      updates_path = handleReceivedMessage(data);
+      if (strcmp(updates_path, "navigation.datetime")==0) {
+        // A typical date/time string looks like this: 2021-01-11T03:43:09.000Z
+        GPSYear = parseDateTime(0,4);
+        GPSMonth = parseDateTime(5,7);
+        GPSDay = parseDateTime(8,10);
+        GPSHour = parseDateTime(11,13);
+        GPSMinute = parseDateTime(14,16);
+        GPSSecond = parseDateTime(17,20);
+        /*Serial.println(GPSYear);
+        Serial.println(GPSMonth);
+        Serial.println(GPSDay);
+        Serial.println(GPSHour);
+        Serial.println(GPSMinute);
+        Serial.println(GPSSecond);*/
+        setTime(GPSHour, GPSMinute, GPSSecond, GPSDay, GPSMonth, GPSYear);
+        Serial.println("Setting Universal Standard Time: " + UTC.dateTime());
+      }
+    }
+  } else {
     Serial.println("Client disconnected. Reconnecting");
     client_connect();
     server_handshake ();
     subscribe_datastream();
   }
+  return 1;
 }
+
+int parseDateTime (int start, int end){
+  String DTReturn = "";
+  for (int i = start; i < end; i++){
+    DTReturn = DTReturn + navigation_datetime_value[i];
+  }
+  return DTReturn.toInt();
+}
+/****************************************************************
+ * SCREEN DISPLAY FUNCTIONS
+ * *************************************************************/
 
 void location_display() {
   String data;
+  ez.addEvent(SetTimeFromGPS);
   ezMenu locationDisplay;
   ez.header.show("Location");
   ez.buttons.show("Electrical # Main Menu # Wind");
@@ -591,17 +388,180 @@ void location_display() {
   }
 }
 
+void displayInfo(const char * updates_path) {
+  ez.canvas.font(&FreeSans18pt7b);
+  // Latitude
+  if (strcmp(updates_path, "navigation.position")==0) {
+    Serial.println(navigation_position_latitude);
+    if (navigation_position_latitude < 0) {
+      northSouth = "S ";
+      }
+      else
+      {
+        northSouth = "N ";
+      }
+    latiTude = northSouth;
+    latiTude += DegreesToDegMin(navigation_position_latitude);
+    Serial.print("Converted Latitude is: ");
+    Serial.println(latiTude);
+    ez.canvas.lmargin(10);
+    ez.canvas.y(ez.canvas.top() + 10);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.println("LAT/LON");
+    ez.canvas.y(ez.canvas.top() + 40);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    if (latiTude != old_latiTude) {
+      ez.canvas.color(ez.theme->background);
+      ez.canvas.print(old_latiTude);
+      ez.canvas.y(ez.canvas.top() + 40);
+      ez.canvas.x(ez.canvas.lmargin());
+      ez.canvas.color(ez.theme->foreground);
+      ez.canvas.print(latiTude);
+      old_latiTude = latiTude;
+    }
+    //Longitude
+    if (navigation_position_longitude < 0) {
+      eastWest = "W ";
+    }
+    else
+    {
+      eastWest = "E ";
+    }
+    longiTude = eastWest;
+    longiTude += DegreesToDegMin(navigation_position_longitude);
+    ez.canvas.y(ez.canvas.top() + 70);
+    ez.canvas.x(ez.canvas.lmargin());
+    if (longiTude != old_longiTude) {
+      ez.canvas.color(ez.theme->background);
+      ez.canvas.print(old_longiTude);
+      ez.canvas.y(ez.canvas.top() + 70);
+      ez.canvas.x(ez.canvas.lmargin());
+      ez.canvas.color(ez.theme->foreground);
+      ez.canvas.println(longiTude);
+      old_longiTude = longiTude;
+    }
+    }
+// We are going to print in knots, so all speeds need to be converted from meters/sec
+// Speed over ground
+  if (strcmp(updates_path, "navigation.speedOverGround")==0) {
+    ez.canvas.y(ez.canvas.top() + 100);
+    ez.canvas.x(ez.canvas.lmargin());
+    M5.lcd.fillRect(0, ez.canvas.top() + 98, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.print("SOG:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    if ((navigation_speedOverGround/0.514444) < 10) ez.canvas.print(" ");
+    ez.canvas.print(navigation_speedOverGround/0.514444, 1);
+    }
+  // Course over ground
+  if (strcmp(updates_path, "navigation.courseOverGroundTrue")==0) {
+    ez.canvas.y(ez.canvas.top() + 100);
+    ez.canvas.x(ez.canvas.lmargin() + 160);
+    M5.lcd.fillRect(160, ez.canvas.top() + 98, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.print("COG:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    ez.canvas.print(navigation_courseOverGroundTrue*57.2958, 0);
+    }
+  //Apparent Wind Speed
+  if (strcmp(updates_path, "environment.wind.speedApparent")==0) {
+    ez.canvas.y(ez.canvas.top() + 130);
+    ez.canvas.x(ez.canvas.lmargin());
+    M5.lcd.fillRect(0, ez.canvas.top() + 130, 170, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.print("AWS:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    if (environment_wind_speedApparent/0.514444 < 10)  ez.canvas.print(" ");
+    ez.canvas.print(environment_wind_speedApparent/0.514444,1);
+    }
+  // Apparent Wind Angle
+  if (strcmp(updates_path, "environment.wind.angleApparent")==0) {
+    ez.canvas.y(ez.canvas.top() + 130);
+    ez.canvas.x(ez.canvas.lmargin() + 160);
+    M5.lcd.fillRect(170, ez.canvas.top() + 130, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.print("AWA:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    if (environment_wind_angleApparent <0) {
+      ez.canvas.print("P");
+      ez.canvas.print(environment_wind_angleApparent*-57.2958,0);
+      }
+    else {
+      ez.canvas.print("S");
+      ez.canvas.print(environment_wind_angleApparent*57.2958,0);
+      }
+    }
+  // True Wind Speed
+  if (strcmp(updates_path, "environment.wind.speedTrue")==0) {
+    ez.canvas.y(ez.canvas.top() + 160);
+    ez.canvas.x(ez.canvas.lmargin());
+    M5.lcd.fillRect(0, ez.canvas.top() + 158, 170, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.print("TWS:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    if (environment_wind_speedTrue/0.514444 < 10)  ez.canvas.print(" ");
+    ez.canvas.print(environment_wind_speedTrue/0.514444,1);
+    }
+  // True Wind Angle
+  if (strcmp(updates_path, "environment.wind.angleTrueWater")==0) {
+    ez.canvas.y(ez.canvas.top() + 160);
+    ez.canvas.x(ez.canvas.lmargin() + 160);
+    M5.lcd.fillRect(170, ez.canvas.top() + 158, 160, ez.fontHeight(), ez.theme->background); //erase partial place for updating data
+    ez.canvas.font(&UbuntuMono_B18pt7b);
+    ez.canvas.print("TWA:");
+    ez.canvas.font(&UbuntuMono_R18pt7b);
+    int angledegrees;
+    if (environment_wind_angleTrueWater < 0) {
+      angledegrees = (environment_wind_angleTrueWater*-57.2958)+180;
+    }
+    else {
+      angledegrees = environment_wind_angleTrueWater*57.2958;
+    }
+    ez.canvas.print(angledegrees);
+  }
+  Serial.println();
+}
+
 void wind_display() {
   int realTrueWindangle;
   String btnpressed = ez.buttons.poll();
   String data;
-
+  ez.addEvent(SetTimeFromGPS);
   ezMenu windDisplay;
   ez.header.show("Wind");
   ez.buttons.show("Location # Main Menu # Tanks");
   ez.canvas.font(&UbuntuMono_Regular16pt7b);
 
-  drawWindScreen();
+  // Draw a compass rose
+  M5.Lcd.fillEllipse(ez.canvas.lmargin() + 160, ez.canvas.top() + 100, 93, 93, ez.theme->foreground);
+  M5.Lcd.fillEllipse(ez.canvas.lmargin() + 160, ez.canvas.top() + 100, 90, 90, ez.theme->background);
+  circleCenterX = ez.canvas.lmargin() + 160;
+  circleCenterY = ez.canvas.top() + 100;
+  // do the small ticks every 15 degrees
+  int roseAnglemark = 0;
+  while (roseAnglemark < 360) {
+    float roseAnglemarkradian = ((roseAnglemark - 90) * 71) / 4068.0;
+    M5.Lcd.drawLine (int(circleCenterX + (80 * cos(roseAnglemarkradian))), int(circleCenterY + (80 * sin(roseAnglemarkradian))), int(circleCenterX + (90 * cos(roseAnglemarkradian))), int(circleCenterY + (90 * sin(roseAnglemarkradian))), ez.theme->foreground);
+    roseAnglemark += 15;
+  }
+  // do the longer ticks every 45 degrees
+  roseAnglemark = 0;
+  while (roseAnglemark < 360) {
+    float roseAnglemarkradian = ((roseAnglemark - 90) * 71) / 4068.0;
+    M5.Lcd.drawLine (int(circleCenterX + (70 * cos(roseAnglemarkradian))), int(circleCenterY + (70 * sin(roseAnglemarkradian))), int(circleCenterX + (90 * cos(roseAnglemarkradian))), int(circleCenterY + (90 * sin(roseAnglemarkradian))), TFT_RED);
+    roseAnglemark += 45;
+  }
+  // put red and green arcs on each side
+  fillArc(circleCenterX, circleCenterY, 45, 14, 93, 93, 5, TFT_GREEN);
+  fillArc(circleCenterX, circleCenterY, 210, 14, 93, 93, 5, TFT_RED);
+
+  // put App and True on left and right
+  ez.canvas.pos(ez.canvas.lmargin() + 10, ez.canvas.top() + 10);
+  ez.canvas.println("App");
+  ez.canvas.pos(ez.canvas.lmargin() + 250, ez.canvas.top() + 10);
+  ez.canvas.print("True");
 
   // Run until the Main Menu button is pressed
 
@@ -695,6 +655,7 @@ void wind_display() {
 
 void tank_display() {
   String data;
+  ez.addEvent(SetTimeFromGPS);
   ezMenu tankDisplay;
   ez.header.show("Water Tanks");
   ez.buttons.show("Wind # Main Menu # Electrical");
@@ -725,7 +686,176 @@ void tank_display() {
   }
 }
 
-void electrical_display() {
-  M5.Lcd.fillScreen(WHITE);
-  ez.buttons.wait("OK");
+void displayTank(const char * updates_path) {
+  int tank1Percent;
+  int tank2Percent;
+  int percentStart = 220; //the x position where the dynamic percent text starts
+  
+  if (strcmp(updates_path, "tanks.freshWater.forwardTank.currentLevel")==0) {
+    Serial.println(electrical_batteries_engine_voltage);
+    ez.canvas.lmargin(10);
+    ez.canvas.font(&FreeSansBold18pt7b);
+    ez.canvas.y(ez.canvas.top() + 5);
+    
+    ez.canvas.y(ez.canvas.top() + 40);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.print("Forward:");
+    ez.canvas.font(&FreeSans18pt7b);
+    M5.lcd.fillRect(percentStart, ez.canvas.top() + 40, ez.canvas.width() - percentStart, ez.fontHeight(), ez.theme->background);
+    ez.canvas.y(ez.canvas.top() + 40);
+    ez.canvas.x(ez.canvas.lmargin() + percentStart);
+    tank1Percent = tanks_freshWater_forwardTank_currentLevel;
+    ez.canvas.print(tank1Percent);
+    ez.canvas.println("%");
+    ez.canvas.println();
+  }
+  if (strcmp(updates_path, "tanks.freshWater.starboardTank.currentLevel")==0) {
+    Serial.println(tanks_freshWater_starboardTank_currentLevel);
+    ez.canvas.lmargin(10);
+    ez.canvas.y(ez.canvas.top() + 110);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.font(&FreeSansBold18pt7b);
+    ez.canvas.print("Starboard:");
+    ez.canvas.font(&FreeSans18pt7b);
+    M5.lcd.fillRect(percentStart, ez.canvas.top() + 110, ez.canvas.width() - percentStart, ez.fontHeight(), ez.theme->background);
+    ez.canvas.y(ez.canvas.top() + 110);
+    ez.canvas.x(ez.canvas.lmargin() + percentStart);
+    tank2Percent = tanks_freshWater_starboardTank_currentLevel;
+    ez.canvas.print(tank2Percent);
+    ez.canvas.println("%");
+  }
 }
+
+void electrical_display() {
+  String data;
+  ez.addEvent(SetTimeFromGPS);
+  ezMenu electricalDisplay;
+  ez.header.show("Batteries");
+  ez.buttons.show("Tanks # Main Menu # Location");
+  String btnpressed = ez.buttons.poll();
+  while (btnpressed == "") {
+    if (client.connected()) {
+      webSocketClient.getData(data);
+      if (data.length() > 0) {
+        displayElectrical(handleReceivedMessage(data));
+        M5.Lcd.setTextWrap(true, true);
+        }
+    } else {
+      Serial.println("Client disconnected. Reconnecting");
+      client_connect();
+      server_handshake ();
+      subscribe_datastream();
+    }
+    delay(10);  // <- fixes some issues with WiFi stability
+    btnpressed = ez.buttons.poll();
+  }
+  if (btnpressed == "Tanks") {
+    ez.canvas.reset();
+    tank_display();
+  }
+  if (btnpressed == "Location") {
+    ez.canvas.reset();
+    location_display();
+  }
+}
+void displayElectrical(const char * updates_path) {
+  
+  if (strcmp(updates_path, "electrical.batteries.house.voltage")==0) {
+    Serial.println(electrical_batteries_house_voltage);
+    ez.canvas.lmargin(10);
+    ez.canvas.y(ez.canvas.top() + 10);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.font(&FreeSansBold18pt7b);
+    ez.canvas.print("House");
+    ez.canvas.font(&FreeSans18pt7b);
+    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 5 + ez.fontHeight(), ez.canvas.width(), ez.fontHeight(), ez.theme->background);
+    ez.canvas.y(ez.canvas.top() + 45);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.print(electrical_batteries_house_voltage);
+    ez.canvas.print(" V");
+    ez.canvas.y(ez.canvas.top() + 45);
+    ez.canvas.x(ez.canvas.width()/2);
+    ez.canvas.print(electrical_batteries_house_current);
+    ez.canvas.print(" A");
+  }
+  if (strcmp(updates_path, "electrical.batteries.engine.voltage")==0) {
+    Serial.println(electrical_batteries_engine_voltage);
+    ez.canvas.lmargin(10);
+    ez.canvas.y(ez.canvas.top() + 95);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.font(&FreeSansBold18pt7b);
+    ez.canvas.print("Engine");
+    ez.canvas.font(&FreeSans18pt7b);
+    M5.lcd.fillRect(ez.canvas.lmargin(), ez.canvas.top() + 105 + ez.fontHeight(), ez.canvas.width(), ez.fontHeight(), ez.theme->background);
+    ez.canvas.y(ez.canvas.top() + 135);
+    ez.canvas.x(ez.canvas.lmargin());
+    ez.canvas.print(electrical_batteries_engine_voltage);
+    ez.canvas.print(" V");
+    ez.canvas.y(ez.canvas.top() + 135);
+    ez.canvas.x(ez.canvas.width()/2);
+    ez.canvas.print(electrical_batteries_engine_current);
+    ez.canvas.print(" A");
+  }
+}
+
+/****************************************************************
+ * SETUP
+ * *************************************************************/
+
+void setup() {
+  #include <themes/default.h>
+  #include <themes/dark.h>
+  #include "heyya.h"
+
+  int status = WL_IDLE_STATUS;
+  int connectionCount = 30; //try to connect to WiFi for 15 seconds
+
+  M5.begin();
+  ez.begin();
+
+  //Turn off NTP time updates
+  setInterval(0);
+  M5.Lcd.setTextWrap(true, true);
+  Serial.begin(115200);
+  while (!Serial) continue;
+  delay(500);
+  ezt::setDebug(INFO);
+  ez.canvas.clear();
+  ez.canvas.font(&LittleLordFontleroyNF60pt7b);
+  ez.canvas.x(40);
+  ez.canvas.y(40);
+  m5.lcd.setTextColor(BLUE);
+  ez.canvas.println("Hey Ya");
+  ez.canvas.font(&UbuntuMono_Regular16pt7b);
+  ez.canvas.lmargin(10);
+  ez.canvas.println("Connecting WiFi");
+  while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to network, SSID: ");
+    Serial.println(ssid);
+    status = WiFi.begin(ssid, password);
+    // wait .5 seconds for connection:
+    delay(500);
+    ez.canvas.print(".");
+    connectionCount --;
+    if (connectionCount == 0) return;
+  }
+  ez.addEvent(SetTimeFromGPS);
+}
+
+/****************************************************************
+ * LOOP
+ * *************************************************************/
+
+void loop() {
+  ezMenu mainmenu("Hey Ya Info System");
+  mainmenu.txtBig();
+  mainmenu.addItem("Location", location_display);
+  mainmenu.addItem("Wind", wind_display);
+  mainmenu.addItem("Tanks", tank_display);
+  mainmenu.addItem("Electrical", electrical_display);
+  mainmenu.addItem("Settings", ez.settings.menu);
+  mainmenu.upOnFirst("last|up");
+  mainmenu.downOnLast("first|down");
+  mainmenu.run();
+}
+

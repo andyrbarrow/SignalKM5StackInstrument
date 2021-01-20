@@ -1,21 +1,24 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
 {
     "configurations": [
         {
-            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags"
-        },
-        {
-            "name": "Linux",
+            "name": "PlatformIO",
             "includePath": [
                 "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/include",
                 "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/src",
-                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ESP8266-Websocket",
-                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5ez_ID5584/src",
+                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5ez/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
-                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ezTime_ID5751/src",
+                "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
+                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ezTime/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/Preferences/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
-                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ArduinoJson_ID64/src",
-                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5Stack_ID1851/src",
+                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ESP32-Websocket",
+                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ArduinoJson/src",
+                "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5Stack/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/SD/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
@@ -85,7 +88,6 @@
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/AzureIoT/src",
-                "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/BluetoothSerial/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
                 "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/ESP32/src",
@@ -105,14 +107,15 @@
                 "path": [
                     "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/include",
                     "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/src",
-                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ESP8266-Websocket",
-                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5ez_ID5584/src",
+                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5ez/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
-                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ezTime_ID5751/src",
+                    "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
+                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ezTime/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/Preferences/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
-                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ArduinoJson_ID64/src",
-                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5Stack_ID1851/src",
+                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ESP32-Websocket",
+                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/ArduinoJson/src",
+                    "/home/andy/Dropbox/PlatformIO/Projects/SignalK Instrument/.pio/libdeps/esp32dev/M5Stack/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/SD/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
@@ -182,7 +185,6 @@
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/AzureIoT/src",
-                    "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/BluetoothSerial/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
                     "/home/andy/.platformio/packages/framework-arduinoespressif32/libraries/ESP32/src",
@@ -199,7 +201,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=50003",
+                "PLATFORMIO=50004",
                 "ARDUINO_M5Stack_Core_ESP32",
                 "ESP32",
                 "ESP_PLATFORM",
@@ -212,7 +214,6 @@
                 "ARDUINO_BOARD=\"M5Stack Core ESP32\"",
                 ""
             ],
-            "intelliSenseMode": "gcc-x64",
             "cStandard": "c99",
             "cppStandard": "c++11",
             "compilerPath": "/home/andy/.platformio/packages/toolchain-xtensa32/bin/xtensa-esp32-elf-gcc",
